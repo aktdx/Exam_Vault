@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: examvault_backend
+    # Runs the full-stack integrated Express + Vite dev server
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgres://examvault:examvault_pass@postgres:5432/examvault_db
+      - SQL_HOST=postgres
+      - SQL_USER=examvault
+      - SQL_PASSWORD=examvault_pass
+      - SQL_DB_NAME=examvault_db
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-mock-project-id}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL:-mock@example.com}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY:-mock-key}
+      - USE_S3=${USE_S3:-false}
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      # Isolate node_modules so host OS doesn't overwrite Linux bindings
+      - /app/node_modules
+      # Persist local uploads
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: examvault_postgres
+    environment:
+      POSTGRES_USER: examvault
+      POSTGRES_PASSWORD: examvault_pass
+      POSTGRES_DB: examvault_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U examvault -d examvault_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  uploads_data:

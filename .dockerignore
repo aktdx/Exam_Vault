@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-test/
+coverage/
+server.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# Git and GitHub Actions
+.git/
+.github/
+
+# Environment variables
+.env
+.env.*
+
+# Testing
+tests/
+jest.config.js
+coverage/
+
+# Documentation and config
+README.md
+docs/
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore

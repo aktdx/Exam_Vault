@@ -1,0 +1,31 @@
+--- src/pages/AdminDashboard.tsx
++++ src/pages/AdminDashboard.tsx
+@@ -42,6 +42,28 @@
+   if (loading) return <div className="p-12 text-center">Loading...</div>;
+   if (!user) return null;
+ 
++  return (
++    <div className="py-8 max-w-7xl mx-auto w-full">
++      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
++        <div>
++          <h1 className="text-3xl font-black text-slate-900 mb-2">Admin Dashboard</h1>
++          <p className="text-sm text-slate-500 font-semibold">Logged in as {user.email}</p>
++        </div>
++        <div className="flex items-center gap-3">
++          {user.email?.toLowerCase() === 'aaminkhansohel@gmail.com' && (
++            <ManageAdminsButton token={token} />
++          )}
++          <button 
++            onClick={() => signOut(auth)}
++            className="text-sm text-red-600 hover:text-white border-2 border-red-100 hover:bg-red-600 px-6 py-2 rounded-xl font-bold transition-all shadow-sm"
++          >
++            Sign Out
++          </button>
++        </div>
++      </div>
++
++      <AdminMetrics />
++
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
+         <UploadPaperForm token={token} />
+         <ManageEntitiesForm token={token} />
