@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv';
-import { initializeApp, getApps } from 'firebase-admin/app';
-import { cert } from 'firebase-admin/app/credential';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import firebaseConfig from '../../firebase-applet-config.json' with { type: 'json' };
 
