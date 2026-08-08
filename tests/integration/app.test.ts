@@ -1,10 +1,10 @@
 import request from 'supertest';
-import { createApp } from '../src/server/app';
+import { getApp } from '../helpers/app.ts';
 
 let app: any;
 
 beforeAll(async () => {
-  app = await createApp();
+  app = await getApp();
 });
 
 describe('Search API', () => {
@@ -33,7 +33,7 @@ describe('Uploads API', () => {
     const res = await request(app)
       .post('/api/v1/admin/question-papers')
       .set('Authorization', 'Bearer invalid_token');
-    
+
     // Auth will fail first
     expect(res.status).toBe(401);
   });

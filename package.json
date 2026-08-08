@@ -9,7 +9,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "NODE_ENV=test node --experimental-vm-modules --env-file-if-exists=.env node_modules/jest/bin/jest.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "health-check": "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/healthz').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\""
