@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, googleAuthProvider } from '../lib/firebase';
+import { auth, googleAuthProvider, firebaseConfig, describeAuthorizedDomains } from '../lib/firebase';
 import { apiFetch } from '../lib/api';
 import { signInWithPopup, onAuthStateChanged, User, signOut } from 'firebase/auth';
 
@@ -46,7 +46,21 @@ export function AdminLogin() {
     } catch (error: any) {
       console.error(error);
       if (error.code === 'auth/unauthorized-domain') {
-        setErrorMsg('This domain is not authorized for Firebase Auth. Please add it to your Firebase Authorized Domains.');
+        setErrorMsg(`${window.location.hostname} is not an authorized domain for Firebase Auth.`);
+        try {
+          const { keyProjectId, authorizedDomains } = await describeAuthorizedDomains();
+          if (keyProjectId && keyProjectId !== firebaseConfig.projectId) {
+            setErrorMsg(
+              `Firebase config mismatch: this build's API key belongs to project "${keyProjectId}", not "${firebaseConfig.projectId}". Add the domain to "${keyProjectId}", or use the API key from "${firebaseConfig.projectId}".`
+            );
+          } else {
+            setErrorMsg(
+              `${window.location.hostname} is not authorized for project "${firebaseConfig.projectId}". Authorized: ${authorizedDomains.join(', ')}`
+            );
+          }
+        } catch {
+          // Leave the generic message in place if the lookup itself fails.
+        }
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         setErrorMsg('Login was cancelled. Please try again.');
       } else {
