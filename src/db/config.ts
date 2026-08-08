@@ -13,7 +13,7 @@ export function getDatabaseConfig(env: NodeJS.ProcessEnv = process.env): Databas
   if (connectionString) {
     return {
       connectionString,
-      ssl: env.NODE_ENV === 'production' || env.NODE_ENV === 'test' || connectionString.includes('neon.tech') || connectionString.includes('sslmode=require'),
+      ssl: env.NODE_ENV === 'production' || connectionString.includes('neon.tech') || connectionString.includes('sslmode=require'),
     };
   }
 
