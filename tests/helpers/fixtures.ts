@@ -3,7 +3,7 @@ import { users, colleges, branches, academicYears, semesters, subjects, examType
 import { mockDb } from './db-mock.ts';
 
 const hasDatabase = Boolean(process.env.DATABASE_URL || process.env.SQL_HOST);
-const activeDb = hasDatabase ? db : mockDb as typeof db;
+const activeDb = hasDatabase ? db : (mockDb as unknown as typeof db);
 
 export async function createUser(overrides: Partial<typeof users.$inferInsert> = {}) {
   const result = await activeDb.insert(users).values({
