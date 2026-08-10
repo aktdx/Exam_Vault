@@ -77,9 +77,10 @@ export function AdminDashboard() {
 }
 
 function ManageEntitiesForm({ token }: { token: string }) {
-  const [entityType, setEntityType] = useState('branches');
+  const [entityType, setEntityType] = useState('colleges');
   const [formData, setFormData] = useState<any>({});
   const [submitting, setSubmitting] = useState(false);
+  const [colleges, setColleges] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +102,13 @@ function ManageEntitiesForm({ token }: { token: string }) {
   useEffect(() => {
     fetchExistingEntities();
   }, [entityType, token]);
+
+  useEffect(() => {
+    apiFetch('/api/v1/colleges')
+      .then(res => { if (!res.ok) throw new Error("API Error"); return res.json(); })
+      .then(data => { if (Array.isArray(data)) setColleges(data); })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     apiFetch('/api/v1/branches')
@@ -144,7 +152,13 @@ function ManageEntitiesForm({ token }: { token: string }) {
     if (typeof payload.name === 'string') payload.name = toTitleCase(payload.name);
     if (typeof payload.code === 'string') payload.code = payload.code.toUpperCase();
 
-    if (entityType === 'branches') payload.collegeId = 1;
+    if (entityType === 'branches') {
+      if (!payload.collegeId) {
+        setError("Please select a college.");
+        setSubmitting(false);
+        return;
+      }
+    }
 
     if (entityType === 'semesters' && !payload.number) {
       setError("Could not automatically determine semester number from the name. Please include a number in the name (e.g. 'Semester 1').");
@@ -180,6 +194,19 @@ function ManageEntitiesForm({ token }: { token: string }) {
       setSuccess(`Added successfully!`);
       setFormData({});
       fetchExistingEntities();
+      // Refresh colleges/branches lists used in dependent selectors
+      if (entityType === 'colleges') {
+        apiFetch('/api/v1/colleges')
+          .then(res => res.json())
+          .then(data => { if (Array.isArray(data)) setColleges(data); })
+          .catch(console.error);
+      }
+      if (entityType === 'branches') {
+        apiFetch('/api/v1/branches')
+          .then(res => res.json())
+          .then(data => { if (Array.isArray(data)) setBranches(data); })
+          .catch(console.error);
+      }
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
       setError(err.message || 'Failed to add entity');
@@ -211,11 +238,30 @@ function ManageEntitiesForm({ token }: { token: string }) {
 
   const renderFields = () => {
     switch (entityType) {
+      case 'colleges':
+        return (
+          <>
+            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Name (e.g. MMIT College)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-teal-500" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Code (e.g. MMIT)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-teal-500" value={formData.code || ''} onChange={e => setFormData({...formData, code: e.target.value})} /></div>
+          </>
+        );
       case 'branches':
         return (
           <>
-            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Name (e.g. Computer Engineering)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-indigo-500" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
-            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Code (e.g. COMP)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-indigo-500" value={formData.code || ''} onChange={e => setFormData({...formData, code: e.target.value})} /></div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">College</label>
+              <select
+                required
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 font-bold text-slate-700 outline-none focus:border-teal-500 appearance-none"
+                value={formData.collegeId || ''}
+                onChange={e => setFormData({...formData, collegeId: Number(e.target.value)})}
+              >
+                <option value="">Select a College</option>
+                {colleges.map(c => <option key={c.id} value={c.id}>{c.name} ({c.code})</option>)}
+              </select>
+            </div>
+            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Name (e.g. Computer Engineering)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-teal-500" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Code (e.g. COMP)</label><input type="text" required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 focus:outline-none focus:border-teal-500" value={formData.code || ''} onChange={e => setFormData({...formData, code: e.target.value})} /></div>
           </>
         );
       case 'academic-years':
@@ -314,6 +360,7 @@ function ManageEntitiesForm({ token }: { token: string }) {
           value={entityType}
           onChange={(e) => { setEntityType(e.target.value); setFormData({}); setError(null); }}
         >
+          <option value="colleges">Colleges</option>
           <option value="branches">Branches</option>
           <option value="academic-years">Academic Years</option>
           <option value="semesters">Semesters</option>
@@ -349,6 +396,8 @@ function ManageEntitiesForm({ token }: { token: string }) {
               <div className="text-sm font-medium text-slate-700">
                 {entityType === 'question-papers' ? 
                   `${ent.subject?.name} (${ent.year} ${ent.session}) - ${ent.branch?.name}, ${ent.semester?.name}, ${ent.examType?.name} (Downloads: ${ent.downloadsCount || 0})` : 
+                 entityType === 'colleges' ?
+                  `${ent.name} (${ent.code})` :
                  entityType === 'semesters' ?
                   `${ent.name} (${branches.find(b => b.id === ent.branchId)?.name || 'Unknown Branch'})` :
                  entityType === 'subjects' ?
