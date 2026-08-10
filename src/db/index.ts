@@ -33,4 +33,8 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle SQL pool client:', err);
 });
 
-export const db = drizzle(pool, { schema });
+export const createDb = (poolInstance = pool) => {
+  return drizzle(poolInstance, { schema });
+};
+
+export const db = createDb();

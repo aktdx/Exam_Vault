@@ -9,6 +9,17 @@ import { requireAuth, requireAdmin, AuthRequest } from "../../middleware/auth.ts
 import { upload, validatePdfHeader } from "../middlewares/upload.ts";
 import { AdminService } from "../services/adminService.ts";
 import { adminAuth } from "../../lib/firebase-admin.ts";
+import { ApiError } from "../errors/ApiError.ts";
+
+// Detects PostgreSQL unique constraint violations (error code 23505)
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: string }).code === '23505'
+  );
+}
 
 const router = Router();
 
@@ -143,7 +154,14 @@ const createCrud = (path: string, table: any, createSchema?: any) => {
   });
   const postMiddleware = createSchema ? [requireAdmin, validate(createSchema)] : [requireAdmin];
   router.post(`/${path}`, ...postMiddleware, async (req: AuthRequest, res: any, next: any) => {
-    try { res.json((await db.insert(table).values(req.body).returning())[0]); } catch (e) { next(e); }
+    try {
+      res.json((await db.insert(table).values(req.body).returning())[0]);
+    } catch (e) {
+      if (isUniqueViolation(e)) {
+        return next(new ApiError(409, 'DUPLICATE_ENTRY', 'A record with these details already exists.'));
+      }
+      next(e);
+    }
   });
   router.delete(`/${path}/:id`, requireAdmin, validate(idParamSchema), async (req: AuthRequest, res: any, next: any) => {
     try { await db.delete(table).where(eq(table.id, Number(req.params.id))); res.json({ success: true }); } catch (e) { next(e); }

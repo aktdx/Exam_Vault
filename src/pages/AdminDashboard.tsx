@@ -152,22 +152,6 @@ function ManageEntitiesForm({ token }: { token: string }) {
       return;
     }
 
-    if (entityType === 'exam-types') {
-      try {
-        const checkRes = await apiFetch(`/api/v1/admin/exam-types`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const existing = await checkRes.json();
-        if (Array.isArray(existing) && existing.some(e => e.name.toLowerCase() === payload.name.toLowerCase())) {
-          setError(`Exam type '${payload.name}' already exists.`);
-          setSubmitting(false);
-          return;
-        }
-      } catch (err) {
-        console.error("Error checking for existing exam types", err);
-      }
-    }
-
     try {
       const res = await apiFetch(`/api/v1/admin/${entityType}`, {
         method: 'POST',
@@ -177,14 +161,29 @@ function ManageEntitiesForm({ token }: { token: string }) {
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess(`${entityType} added successfully!`);
+      if (!res.ok) {
+        // Try to parse a structured error message from the server
+        let message = 'Failed to add entity';
+        try {
+          const errData = await res.json();
+          if (res.status === 409) {
+            message = `This ${entityType.replace('-', ' ').replace(/s$/, '')} already exists. Check the list below.`;
+          } else {
+            message = errData.message || errData.error || message;
+          }
+        } catch {
+          // non-JSON body — use status text
+          message = res.statusText || message;
+        }
+        throw new Error(message);
+      }
+      setSuccess(`Added successfully!`);
       setFormData({});
       fetchExistingEntities();
-      setTimeout(() => setSuccess(null), 3000);
+      setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
       setError(err.message || 'Failed to add entity');
-      setTimeout(() => setError(null), 3000);
+      setTimeout(() => setError(null), 6000);
     } finally {
       setSubmitting(false);
     }

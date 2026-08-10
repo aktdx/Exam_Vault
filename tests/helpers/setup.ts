@@ -2,8 +2,6 @@ import { db, pool } from '../../src/db/index.ts';
 import { sql } from 'drizzle-orm';
 import { jest } from '@jest/globals';
 
-const hasDatabase = Boolean(process.env.DATABASE_URL || process.env.SQL_HOST);
-
 // Silence logger during tests
 jest.mock('../../src/server/utils/logger.ts', () => ({
   logger: {
@@ -15,15 +13,11 @@ jest.mock('../../src/server/utils/logger.ts', () => ({
 }));
 
 afterAll(async () => {
-  if (hasDatabase) {
-    await pool.end();
-  }
+  await pool.end();
 });
 
 afterEach(async () => {
-  if (!hasDatabase) return;
-
-  // Clean up database tables
+  // Clean all test data between tests in dependency order
   await db.execute(sql`
     DELETE FROM downloads;
     DELETE FROM question_papers;
