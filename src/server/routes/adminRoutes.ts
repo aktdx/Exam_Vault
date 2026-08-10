@@ -1,9 +1,9 @@
 import { validate } from '../middlewares/validate.ts';
 import { createPaperSchema, updatePaperSchema } from '../validations/paper.validation.ts';
-import { addAdminSchema, toggleAdminSchema, idParamSchema, createBranchSchema, createAcademicYearSchema, createSemesterSchema, createSubjectSchema, createExamTypeSchema } from '../validations/admin.validation.ts';
+import { addAdminSchema, toggleAdminSchema, idParamSchema, createCollegeSchema, createBranchSchema, createAcademicYearSchema, createSemesterSchema, createSubjectSchema, createExamTypeSchema } from '../validations/admin.validation.ts';
 import { Router } from "express";
 import { db } from "../../db/index.ts";
-import { branches, academicYears, semesters, subjects, examTypes, questionPapers, users, downloads } from "../../db/schema.ts";
+import { colleges, branches, academicYears, semesters, subjects, examTypes, questionPapers, users, downloads } from "../../db/schema.ts";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin, AuthRequest } from "../../middleware/auth.ts";
 import { upload, validatePdfHeader } from "../middlewares/upload.ts";
@@ -18,6 +18,16 @@ function isUniqueViolation(err: unknown): boolean {
     err !== null &&
     'code' in err &&
     (err as { code: string }).code === '23505'
+  );
+}
+
+// Detects PostgreSQL foreign key violation (error code 23503)
+function isForeignKeyViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: string }).code === '23503'
   );
 }
 
@@ -160,6 +170,9 @@ const createCrud = (path: string, table: any, createSchema?: any) => {
       if (isUniqueViolation(e)) {
         return next(new ApiError(409, 'DUPLICATE_ENTRY', 'A record with these details already exists.'));
       }
+      if (isForeignKeyViolation(e)) {
+        return next(new ApiError(400, 'INVALID_REFERENCE', 'A referenced record (e.g. college, branch) does not exist.'));
+      }
       next(e);
     }
   });
@@ -168,6 +181,7 @@ const createCrud = (path: string, table: any, createSchema?: any) => {
   });
 };
 
+createCrud("colleges", colleges, createCollegeSchema);
 createCrud("branches", branches, createBranchSchema);
 createCrud("academic-years", academicYears, createAcademicYearSchema);
 createCrud("semesters", semesters, createSemesterSchema);

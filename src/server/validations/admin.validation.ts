@@ -23,6 +23,13 @@ export const idParamSchema = z.object({
 });
 
 // Used for CRUD routes like POST /branches, POST /subjects
+export const createCollegeSchema = z.object({
+  body: z.object({
+    name: z.string().min(1),
+    code: z.string().min(1),
+  })
+});
+
 export const createBranchSchema = z.object({
   body: z.object({
     collegeId: z.coerce.number().int().positive(),

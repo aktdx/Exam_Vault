@@ -35,6 +35,16 @@ export const errorHandler = (err: unknown, req: Request, res: Response, next: Ne
     err !== null &&
     typeof err === 'object' &&
     'code' in err &&
+    (err as { code: unknown }).code === '23503'
+  ) {
+    // Handle PostgreSQL foreign key violation
+    status = 400;
+    message = 'A referenced record does not exist.';
+    errorCode = 'INVALID_REFERENCE';
+  } else if (
+    err !== null &&
+    typeof err === 'object' &&
+    'code' in err &&
     (err as { code: unknown }).code === '23505'
   ) {
     // Handle PostgreSQL unique constraint violation
