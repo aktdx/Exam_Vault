@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import * as pgModule from 'pg';
 import pg from 'pg';
 import * as schema from './schema.ts';
 import { getDatabaseConfig } from './config.ts';
 
-const { Pool } = pg;
+const Pool = pg?.Pool || (pg as any)?.default?.Pool || pgModule?.Pool || (pgModule as any)?.default?.Pool;
 
 export const createPool = () => {
   const config = getDatabaseConfig();
