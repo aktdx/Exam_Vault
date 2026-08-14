@@ -10,6 +10,7 @@ import { upload, validatePdfHeader } from "../middlewares/upload.ts";
 import { AdminService } from "../services/adminService.ts";
 import { adminAuth } from "../../lib/firebase-admin.ts";
 import { ApiError } from "../errors/ApiError.ts";
+import { isSuperAdminEmail } from "../../config/admin.ts";
 
 // Detects PostgreSQL unique constraint violations (error code 23505)
 function isUniqueViolation(err: unknown): boolean {
@@ -50,7 +51,7 @@ router.use(requireAuth);
  *         description: Forbidden
  */
 router.get("/users", requireAdmin, async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try { res.json(await db.select().from(users)); } catch (e) { next(e); }
 });
 
@@ -82,11 +83,11 @@ router.get("/users", requireAdmin, async (req: AuthRequest, res, next) => {
  *         description: Success
  */
 router.put("/users/:uid/toggle-admin", requireAdmin, validate(toggleAdminSchema), async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const target = await db.select().from(users).where(eq(users.uid, req.params.uid));
     if (!target.length) return res.status(404).json({ error: 'Not found' });
-    if (target[0].email === 'aaminkhansohel@gmail.com') return res.status(400).json({ error: 'Cannot modify super admin' });
+    if (isSuperAdminEmail(target[0].email)) return res.status(400).json({ error: 'Cannot modify super admin' });
     await db.update(users).set({ isAdmin: req.body.isAdmin }).where(eq(users.uid, req.params.uid));
     res.json({ success: true });
   } catch (e) { next(e); }
@@ -114,7 +115,7 @@ router.put("/users/:uid/toggle-admin", requireAdmin, validate(toggleAdminSchema)
  *         description: Success
  */
 router.post("/users/add-admin", requireAdmin, validate(addAdminSchema), async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });

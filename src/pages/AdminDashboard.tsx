@@ -463,17 +463,17 @@ function UploadPaperForm({ token }: { token: string }) {
   const [examTypes, setExamTypes] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/v1/colleges')
+    apiFetch('/api/v1/colleges')
       .then(res => { if (!res.ok) throw new Error("API Error"); return res.json(); })
       .then(data => { if (Array.isArray(data)) setColleges(data); })
       .catch(console.error);
 
-    fetch('/api/v1/branches')
+    apiFetch('/api/v1/branches')
       .then(res => { if (!res.ok) throw new Error("API Error"); return res.json(); })
       .then(data => { if (Array.isArray(data)) setAllBranches(data); })
       .catch(console.error);
 
-    fetch('/api/v1/admin/exam-types', {
+    apiFetch('/api/v1/admin/exam-types', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => { if (!res.ok) throw new Error("API Error"); return res.json(); })
@@ -495,7 +495,7 @@ function UploadPaperForm({ token }: { token: string }) {
 
   useEffect(() => {
     if (formData.branchId) {
-      fetch(`/api/v1/branches/${formData.branchId}/semesters`)
+      apiFetch(`/api/v1/branches/${formData.branchId}/semesters`)
         .then(res => { if (!res.ok) throw new Error("API Error"); return res.json(); })
         .then(data => {
           if (Array.isArray(data)) setSemesters(data);

@@ -4,6 +4,7 @@ import type { DecodedIdToken } from 'firebase-admin/auth';
 import { db } from '../db/index.ts';
 import { users } from '../db/schema.ts';
 import { eq, InferSelectModel } from 'drizzle-orm';
+import { isSuperAdminEmail } from '../config/admin.ts';
 
 export type User = InferSelectModel<typeof users>;
 
@@ -38,9 +39,8 @@ export const requireAuth = async (
 
   req.user = decodedToken;
 
-  const superAdmin = 'aaminkhansohel@gmail.com';
   const email = decodedToken.email || '';
-  const isSuperAdmin = email.toLowerCase() === superAdmin;
+  const isSuperAdmin = isSuperAdminEmail(email);
 
   try {
     let dbUserArr;
