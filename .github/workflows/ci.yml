@@ -71,6 +71,7 @@ jobs:
           SQL_DB_NAME: examvault_test_db
           FIREBASE_PROJECT_ID: mock-project-id
           JWT_SECRET: super-secret-test-key
+          SUPERADMIN_EMAILS: aaminkhansohel@gmail.com
 
       # 9. Verify Docker Build
       - name: Build Docker Image

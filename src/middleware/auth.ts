@@ -37,6 +37,11 @@ export const requireAuth = async (
     return;
   }
 
+  if (!decodedToken) {
+    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return;
+  }
+
   req.user = decodedToken;
 
   const email = decodedToken.email || '';
