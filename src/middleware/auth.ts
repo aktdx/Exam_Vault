@@ -4,6 +4,7 @@ import type { DecodedIdToken } from 'firebase-admin/auth';
 import { db } from '../db/index.ts';
 import { users } from '../db/schema.ts';
 import { eq, InferSelectModel } from 'drizzle-orm';
+import { isSuperAdminEmail } from '../config/admin.ts';
 
 export type User = InferSelectModel<typeof users>;
 
@@ -24,14 +25,29 @@ export const requireAuth = async (
   }
 
   const token = authHeader.split('Bearer ')[1];
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    req.user = decodedToken;
-    
-    const superAdmin = 'aaminkhansohel@gmail.com';
-    const email = decodedToken.email || '';
-    const isSuperAdmin = email.toLowerCase() === superAdmin;
 
+  // Verified separately from the database work below: a failing database is not
+  // a bad token, and reporting it as one sends debugging in the wrong direction.
+  let decodedToken: DecodedIdToken;
+  try {
+    decodedToken = await adminAuth.verifyIdToken(token);
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return;
+  }
+
+  if (!decodedToken) {
+    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return;
+  }
+
+  req.user = decodedToken;
+
+  const email = decodedToken.email || '';
+  const isSuperAdmin = isSuperAdminEmail(email);
+
+  try {
     let dbUserArr;
     try {
       dbUserArr = await db.insert(users)
@@ -66,11 +82,11 @@ export const requireAuth = async (
     }
       
     req.dbUser = dbUserArr[0];
-    
+
     next();
   } catch (error) {
-    console.error('Error verifying Firebase ID token:', error);
-    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    console.error('Failed to upsert user record (database error):', error);
+    res.status(503).json({ error: 'Service unavailable: database error' });
   }
 };
 

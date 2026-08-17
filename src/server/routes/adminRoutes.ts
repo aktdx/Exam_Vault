@@ -1,14 +1,36 @@
 import { validate } from '../middlewares/validate.ts';
 import { createPaperSchema, updatePaperSchema } from '../validations/paper.validation.ts';
-import { addAdminSchema, toggleAdminSchema, idParamSchema, createBranchSchema, createAcademicYearSchema, createSemesterSchema, createSubjectSchema, createExamTypeSchema } from '../validations/admin.validation.ts';
+import { addAdminSchema, toggleAdminSchema, idParamSchema, createCollegeSchema, createBranchSchema, createAcademicYearSchema, createSemesterSchema, createSubjectSchema, createExamTypeSchema } from '../validations/admin.validation.ts';
 import { Router } from "express";
 import { db } from "../../db/index.ts";
-import { branches, academicYears, semesters, subjects, examTypes, questionPapers, users, downloads } from "../../db/schema.ts";
+import { colleges, branches, academicYears, semesters, subjects, examTypes, questionPapers, users, downloads } from "../../db/schema.ts";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin, AuthRequest } from "../../middleware/auth.ts";
 import { upload, validatePdfHeader } from "../middlewares/upload.ts";
 import { AdminService } from "../services/adminService.ts";
 import { adminAuth } from "../../lib/firebase-admin.ts";
+import { ApiError } from "../errors/ApiError.ts";
+import { isSuperAdminEmail } from "../../config/admin.ts";
+
+// Detects PostgreSQL unique constraint violations (error code 23505)
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: string }).code === '23505'
+  );
+}
+
+// Detects PostgreSQL foreign key violation (error code 23503)
+function isForeignKeyViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: string }).code === '23503'
+  );
+}
 
 const router = Router();
 
@@ -29,7 +51,7 @@ router.use(requireAuth);
  *         description: Forbidden
  */
 router.get("/users", requireAdmin, async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try { res.json(await db.select().from(users)); } catch (e) { next(e); }
 });
 
@@ -61,11 +83,11 @@ router.get("/users", requireAdmin, async (req: AuthRequest, res, next) => {
  *         description: Success
  */
 router.put("/users/:uid/toggle-admin", requireAdmin, validate(toggleAdminSchema), async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const target = await db.select().from(users).where(eq(users.uid, req.params.uid));
     if (!target.length) return res.status(404).json({ error: 'Not found' });
-    if (target[0].email === 'aaminkhansohel@gmail.com') return res.status(400).json({ error: 'Cannot modify super admin' });
+    if (isSuperAdminEmail(target[0].email)) return res.status(400).json({ error: 'Cannot modify super admin' });
     await db.update(users).set({ isAdmin: req.body.isAdmin }).where(eq(users.uid, req.params.uid));
     res.json({ success: true });
   } catch (e) { next(e); }
@@ -93,7 +115,7 @@ router.put("/users/:uid/toggle-admin", requireAdmin, validate(toggleAdminSchema)
  *         description: Success
  */
 router.post("/users/add-admin", requireAdmin, validate(addAdminSchema), async (req: AuthRequest, res, next) => {
-  if (req.dbUser.email !== 'aaminkhansohel@gmail.com') return res.status(403).json({ error: 'Forbidden' });
+  if (!isSuperAdminEmail(req.dbUser.email)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
@@ -143,13 +165,24 @@ const createCrud = (path: string, table: any, createSchema?: any) => {
   });
   const postMiddleware = createSchema ? [requireAdmin, validate(createSchema)] : [requireAdmin];
   router.post(`/${path}`, ...postMiddleware, async (req: AuthRequest, res: any, next: any) => {
-    try { res.json((await db.insert(table).values(req.body).returning())[0]); } catch (e) { next(e); }
+    try {
+      res.json((await db.insert(table).values(req.body).returning())[0]);
+    } catch (e) {
+      if (isUniqueViolation(e)) {
+        return next(new ApiError(409, 'DUPLICATE_ENTRY', 'A record with these details already exists.'));
+      }
+      if (isForeignKeyViolation(e)) {
+        return next(new ApiError(400, 'INVALID_REFERENCE', 'A referenced record (e.g. college, branch) does not exist.'));
+      }
+      next(e);
+    }
   });
   router.delete(`/${path}/:id`, requireAdmin, validate(idParamSchema), async (req: AuthRequest, res: any, next: any) => {
     try { await db.delete(table).where(eq(table.id, Number(req.params.id))); res.json({ success: true }); } catch (e) { next(e); }
   });
 };
 
+createCrud("colleges", colleges, createCollegeSchema);
 createCrud("branches", branches, createBranchSchema);
 createCrud("academic-years", academicYears, createAcademicYearSchema);
 createCrud("semesters", semesters, createSemesterSchema);

@@ -17,3 +17,5 @@ services:
         sync: false
       - key: FIREBASE_PRIVATE_KEY
         sync: false
+      - key: SUPERADMIN_EMAILS
+        sync: false

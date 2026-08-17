@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Sync Docs on Source Change",
+  "description": "When any TypeScript, TSX, or key config files are edited, prompt the agent to review the changes and update the README or any relevant markdown documentation to reflect what changed.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just edited in this TypeScript/React + Express project. Review the change and determine if any documentation needs to be updated. Check the README.md at the project root and any markdown files (like FINAL_REPORT.md, DOCKERIZATION_STRATEGY.md) for content that may be affected. If the change affects setup instructions, API endpoints, architecture, environment variables, deployment steps, or any other documented behavior, update the relevant docs to reflect the current state of the code."
+  },
+  "workspaceFolderName": "Exam_Vault",
+  "shortName": "sync-docs-on-source-change"
+}

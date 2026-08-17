@@ -7,6 +7,10 @@ export const users = pgTable('users', {
   email: text('email').notNull(),
   isAdmin: boolean('is_admin').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    emailIdx: index('users_email_idx').on(table.email),
+  };
 });
 
 export const colleges = pgTable('colleges', {
@@ -17,6 +21,7 @@ export const colleges = pgTable('colleges', {
 }, (table) => {
   return {
     codeUnique: unique('college_code_unique').on(table.code),
+    nameIdx: index('colleges_name_idx').on(table.name),
   };
 });
 
@@ -29,6 +34,8 @@ export const branches = pgTable('branches', {
 }, (table) => {
   return {
     branchCodeUnique: unique('branch_code_unique').on(table.collegeId, table.code),
+    nameIdx: index('branches_name_idx').on(table.name),
+    codeIdx: index('branches_code_idx').on(table.code),
   };
 });
 
@@ -40,6 +47,7 @@ export const academicYears = pgTable('academic_years', {
 }, (table) => {
   return {
     levelUnique: unique('academic_year_level_unique').on(table.level),
+    nameIdx: index('academic_years_name_idx').on(table.name),
   };
 });
 
@@ -54,6 +62,8 @@ export const semesters = pgTable('semesters', {
   return {
     semesterNumberUnique: unique('semester_number_unique').on(table.branchId, table.number),
     numberCheck: check('semester_number_check', sql`number > 0`),
+    academicYearIdIdx: index('semesters_academic_year_id_idx').on(table.academicYearId),
+    nameIdx: index('semesters_name_idx').on(table.name),
   };
 });
 
@@ -67,6 +77,9 @@ export const subjects = pgTable('subjects', {
 }, (table) => {
   return {
     subjectCodeUnique: unique('subject_code_unique').on(table.branchId, table.code),
+    semesterIdIdx: index('subjects_semester_id_idx').on(table.semesterId),
+    nameIdx: index('subjects_name_idx').on(table.name),
+    codeIdx: index('subjects_code_idx').on(table.code),
   };
 });
 
@@ -96,9 +109,12 @@ export const questionPapers = pgTable('question_papers', {
 }, (table) => {
   return {
     subjectIdx: index('subject_idx').on(table.subjectId),
+    examTypeIdx: index('question_papers_exam_type_id_idx').on(table.examTypeId),
+    uploadedByIdx: index('question_papers_uploaded_by_id_idx').on(table.uploadedById),
     yearIdx: index('year_idx').on(table.year),
     sessionIdx: index('session_idx').on(table.session),
-    isDeletedIdx: index('is_deleted_idx').on(table.isDeleted),
+    // Composite index for common filtering: used in trash/list operations
+    isDeletedYearIdx: index('question_papers_is_deleted_year_idx').on(table.isDeleted, table.year),
     paperUnique: unique('question_paper_unique').on(table.subjectId, table.examTypeId, table.year, table.session),
     yearCheck: check('question_paper_year_check', sql.raw(`year >= 2000 AND year <= ${new Date().getFullYear()}`)),
     fileSizeCheck: check('question_paper_file_size_check', sql`file_size > 0`),
@@ -109,6 +125,11 @@ export const downloads = pgTable('downloads', {
   id: serial('id').primaryKey(),
   questionPaperId: integer('question_paper_id').references(() => questionPapers.id, { onDelete: 'cascade' }).notNull(),
   downloadedAt: timestamp('downloaded_at').defaultNow(),
+}, (table) => {
+  return {
+    questionPaperIdIdx: index('downloads_question_paper_id_idx').on(table.questionPaperId),
+    downloadedAtIdx: index('downloads_downloaded_at_idx').on(table.downloadedAt),
+  };
 });
 
 // Relations
