@@ -6,6 +6,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Home } from './pages/Home';
 import { Branches } from './pages/Branches';
 import { Semesters } from './pages/Semesters';
@@ -21,6 +22,7 @@ export default function App() {
       <div className="flex flex-col min-h-screen w-full bg-[#F0F4F8] text-[#1E293B] font-sans">
         <Toaster position="top-center" toastOptions={{ duration: 4000, style: { fontWeight: 'bold' } }} />
         <Analytics />
+        <SpeedInsights />
         <header className="bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-[100]">
           <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2 group">
@@ -67,4 +69,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
