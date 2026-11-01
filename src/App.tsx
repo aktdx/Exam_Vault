@@ -42,6 +42,7 @@ export default function App() {
               Admin <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </Link>
           </div>
+          <meta name="google-site-verification" content="buVp-kvqc7IvOz0j4MXqufwOaz_e_8MyPbcNPtZYW1c" />
         </header>
 
         <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full gap-8">
