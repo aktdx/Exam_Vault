@@ -1,10 +1,8 @@
 import { db } from "../../db/index.ts";
-import { questionPapers, subjects, examTypes, semesters, branches, users } from "../../db/schema.ts";
+import { questionPapers } from "../../db/schema.ts";
 import { eq, and, ne } from "drizzle-orm";
 import { uploadFile, deleteFile } from "../../lib/storage.ts";
 import { ApiError } from "../errors/ApiError.ts";
-import crypto from "crypto";
-import path from "path";
 import { logger } from "../utils/logger.ts";
 
 export interface CreatePaperDto {
