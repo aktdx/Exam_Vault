@@ -1,6 +1,8 @@
 # ExamVault
 
-A previous-year question paper repository for colleges. Students browse by branch → semester → subject to find and download past exam papers; admins manage the catalog and upload new PDFs through a protected dashboard.
+A previous-year question paper repository for colleges. Students browse by branch → semester → subject to find and download past exam papers; admins manage the catalog and upload new PDFs through a secure dashboard.
+
+**Live Demo**: [https://exam-vault-theta.vercel.app](https://exam-vault-theta.vercel.app)
 
 ## Features
 
