@@ -1,9 +1,7 @@
 import { db } from "../../db/index.ts";
 import { questionPapers, subjects, examTypes, semesters, branches, downloads } from "../../db/schema.ts";
-import { eq, and, ilike, or, sql, desc } from "drizzle-orm";
+import { eq, and, ilike, or, sql } from "drizzle-orm";
 import { uploadFile, getFileUrl, deleteFile } from "../../lib/storage.ts";
-import fs from "fs";
-import crypto from "crypto";
 
 export interface PaginationParams {
   page?: number;

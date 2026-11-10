@@ -215,7 +215,6 @@ router.get("/search", validate(searchPapersSchema), async (req: Request, res: Re
 router.get("/question-papers/:id", validate(idParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await QuestionPaperService.getPaperById(Number(req.params.id));
-    console.log("FETCHED PAPER DATA:", data);
     if (!data) return res.status(404).json({ error: "Not found" });
     res.json(data);
   } catch (e) { next(e); }
