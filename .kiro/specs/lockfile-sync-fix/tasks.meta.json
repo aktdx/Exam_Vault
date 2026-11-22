@@ -1,0 +1,68 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "• npm ci exits non-zero (ENOTEMPTY/-4051 on Windows, lockfile sync error in CI/Linux): lockfile out of sync with package.json\\n• package-lock.json missing node_modules/@opentelemetry/api (need @opentelemetry/api@1.10.0)\\n• package-lock.json missing node_modules/@emnapi/core (need @emnapi/core@1.11.3)\\n• package-lock.json missing node_modules/@emnapi/runtime (need @emnapi/runtime@1.11.3)\\nAll three counterexamples confirm the bug condition holds on the unfixed lockfile.",
+      "lastRunTimestamp": 1794347554733
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981339
+      },
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346987495
+      },
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794347564289
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981423
+      },
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794347567352
+      }
+    ],
+    "3.1 Regenerate the lockfile by running npm install": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981523
+      }
+    ],
+    "3.2 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981601
+      }
+    ],
+    "3.3 Verify preservation tests still pass": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981671
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "dc2ca205-ca94-47ca-a58c-be2d10e19bd6",
+        "chatSessionId": "sess_82227639-40a9-41f5-a3c3-fd07d645ef80",
+        "timestamp": 1794346981747
+      }
+    ]
+  }
+}
